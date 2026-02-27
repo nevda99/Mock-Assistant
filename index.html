@@ -3,78 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流量配置提效工具 · 增强版</title>
-    <!-- Font Awesome 6 免费图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- SheetJS 用于读写excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <title>流量配置提效工具 · 批量管理</title>
+    <!-- 使用之前简洁版本的样式，保留新功能 -->
     <style>
         * {
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         body {
-            background: linear-gradient(145deg, #f0f5fa 0%, #e9f0f7 100%);
+            background: #f4f7fb;
             margin: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
         }
         .card {
-            max-width: 1500px;
+            max-width: 1400px;
             width: 100%;
-            background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 40px;
-            box-shadow: 0 30px 60px rgba(0,20,50,0.15), 0 0 0 1px rgba(255,255,255,0.5) inset;
-            padding: 30px;
-            border: 1px solid rgba(255,255,255,0.8);
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,10,30,0.1);
+            padding: 28px 24px;
         }
         h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
+            font-size: 1.9rem;
+            font-weight: 600;
             margin-top: 0;
             margin-bottom: 8px;
-            color: #0b2a4a;
+            color: #0a2540;
             display: flex;
             align-items: center;
-            gap: 12px;
-            letter-spacing: -0.02em;
-        }
-        h1 i {
-            color: #2d7ee9;
-            background: white;
-            padding: 12px;
-            border-radius: 30px;
-            box-shadow: 0 10px 20px rgba(0,80,200,0.2);
+            gap: 8px;
         }
         .sub {
-            color: #2c4c6e;
-            margin-bottom: 30px;
-            border-left: 5px solid #2d7ee9;
-            padding-left: 20px;
-            background: rgba(45,126,233,0.05);
-            border-radius: 0 30px 30px 0;
-            line-height: 1.6;
-            font-size: 1rem;
-            font-weight: 400;
-            backdrop-filter: blur(5px);
+            color: #425466;
+            margin-bottom: 28px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 18px;
+            background: #f0f4fe;
+            border-radius: 0 12px 12px 0;
+            line-height: 1.5;
+            font-size: 0.98rem;
         }
         .toolbar {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px 20px;
-            align-items: center;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(8px);
-            padding: 18px 20px;
-            border-radius: 50px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.9);
-            box-shadow: 0 8px 18px rgba(0,30,60,0.06);
+            gap: 16px 24px;
+            align-items: flex-end;
+            background: #f9fafc;
+            padding: 20px 18px;
+            border-radius: 24px;
+            margin-bottom: 28px;
+            border: 1px solid #e2e8f0;
         }
         .upload-area {
             display: flex;
@@ -83,282 +65,238 @@
             flex-wrap: wrap;
         }
         .upload-label {
-            background: white;
-            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            border: 1px dashed #3b82f6;
             border-radius: 40px;
-            padding: 10px 22px;
+            padding: 10px 20px;
             font-weight: 500;
-            color: #1e3a6b;
+            color: #1e40af;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
         .upload-label:hover {
-            background: #e6f0ff;
-            border-color: #2d7ee9;
-            transform: translateY(-2px);
-            box-shadow: 0 12px 20px rgba(45,126,233,0.15);
-        }
-        .upload-label i {
-            color: #2d7ee9;
+            background: #eef2ff;
+            border-color: #2563eb;
         }
         .upload-label input {
             display: none;
         }
-        .filename-badge {
-            background: rgba(255,255,255,0.8);
-            backdrop-filter: blur(4px);
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            color: #1e3a6b;
-            border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
         .base-time-control {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             background: white;
-            padding: 4px 12px 4px 18px;
+            padding: 6px 16px 6px 20px;
             border-radius: 40px;
-            border: 1px solid #d9e2ef;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #ccd9f0;
         }
         .base-time-control span {
             font-weight: 500;
-            color: #1e3a6b;
+            color: #1e293b;
         }
         .base-time-control input {
             width: 80px;
             padding: 8px 12px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #b9c8e7;
             border-radius: 30px;
             font-family: monospace;
             font-size: 1rem;
             text-align: center;
-            background: #f8fafd;
+            background: #f8faff;
             font-weight: 600;
-            color: #0b2a4a;
+            color: #0f2b4b;
         }
         .base-time-control input:focus {
             outline: none;
-            border-color: #2d7ee9;
-            box-shadow: 0 0 0 3px rgba(45,126,233,0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
         }
         .btn {
             background: white;
-            border: 1px solid #d0ddeb;
+            border: 1px solid #bdcbe3;
             padding: 10px 24px;
             border-radius: 40px;
             font-weight: 550;
-            color: #1e3a6b;
+            color: #1e293b;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: 0.1s;
             font-size: 0.95rem;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-            backdrop-filter: blur(4px);
-        }
-        .btn i {
-            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
         .btn-primary {
-            background: linear-gradient(145deg, #1e3a8a, #2563eb);
-            border: none;
+            background: #1e3a8a;
+            border: 1px solid #1e3a8a;
             color: white;
-            box-shadow: 0 12px 24px rgba(30,58,138,0.25);
+            box-shadow: 0 6px 14px rgba(30,58,138,0.25);
         }
         .btn-primary:hover {
-            background: linear-gradient(145deg, #2563eb, #1e3a8a);
-            transform: translateY(-3px);
-            box-shadow: 0 20px 30px rgba(30,58,138,0.3);
+            background: #2563eb;
+            border-color: #2563eb;
         }
         .btn-success {
-            background: linear-gradient(145deg, #0b5e42, #0f7353);
-            border: none;
+            background: #0b5e42;
+            border-color: #0b5e42;
             color: white;
-            box-shadow: 0 12px 24px rgba(11,94,66,0.25);
         }
         .btn-success:hover {
-            background: linear-gradient(145deg, #0f7353, #0b5e42);
-            transform: translateY(-3px);
-        }
-        .btn-danger {
-            background: linear-gradient(145deg, #b91c1c, #dc2626);
-            border: none;
-            color: white;
-            box-shadow: 0 12px 24px rgba(185,28,28,0.25);
-        }
-        .btn-danger:hover {
-            background: linear-gradient(145deg, #dc2626, #b91c1c);
-            transform: translateY(-3px);
+            background: #0f7353;
         }
         .btn-outline {
-            background: rgba(255,255,255,0.6);
-            border: 1px solid #b4c6da;
-            color: #1e3a6b;
+            background: transparent;
+            border: 1px solid #9aa9c1;
         }
         .btn-outline:hover {
-            background: white;
-            border-color: #2d7ee9;
-            transform: translateY(-2px);
+            background: #e6edf8;
+        }
+        .btn-danger {
+            background: #b91c1c;
+            border-color: #b91c1c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
         }
         .table-wrapper {
             overflow-x: auto;
-            border-radius: 28px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(8px);
-            padding: 4px;
-            margin: 25px 0 30px;
-            box-shadow: 0 15px 30px rgba(0,30,60,0.08);
-            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 20px;
+            border: 1px solid #dee6f0;
+            background: #ffffff;
+            margin: 24px 0 28px;
+            box-shadow: 0 6px 14px rgba(0,20,40,0.04);
         }
         table {
             border-collapse: collapse;
             width: 100%;
             min-width: 1100px;
             font-size: 0.9rem;
-            border-radius: 24px;
-            overflow: hidden;
         }
         th {
-            background: rgba(241,245,249,0.8);
-            backdrop-filter: blur(4px);
+            background: #f1f5f9;
             padding: 16px 8px;
             font-weight: 600;
-            color: #0f3a68;
+            color: #0c4a6e;
             white-space: nowrap;
             border-bottom: 2px solid #cbd5e1;
-            font-size: 0.9rem;
-            letter-spacing: 0.02em;
         }
         th:first-child {
-            width: 50px;
+            width: 40px;
             text-align: center;
         }
         td {
-            padding: 8px 4px;
+            padding: 8px 6px;
             border-bottom: 1px solid #e2e8f0;
             vertical-align: middle;
-            background: rgba(255,255,255,0.4);
         }
         td input[type="text"] {
             width: 100%;
             padding: 10px 8px;
             border: 1px solid transparent;
-            border-radius: 16px;
-            background: white;
+            border-radius: 14px;
+            background: #fafdff;
             font-size: 0.9rem;
-            transition: 0.15s;
+            transition: 0.1s;
             font-family: monospace;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         td input[type="text"]:focus {
             outline: none;
-            border-color: #2d7ee9;
+            border-color: #3b82f6;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(45,126,233,0.15);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        td input[type="text"]:hover {
+            border-color: #a0bbdf;
+            background: #ffffff;
         }
         td input[type="checkbox"] {
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: #2d7ee9;
+            accent-color: #3b82f6;
         }
         .add-section {
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(8px);
-            padding: 24px 22px;
-            border-radius: 50px;
+            background: #f2f6fd;
+            padding: 22px 20px;
+            border-radius: 28px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             margin-top: 16px;
-            border: 1px solid rgba(255,255,255,0.9);
-            box-shadow: 0 8px 18px rgba(0,30,60,0.06);
         }
         .add-section input {
-            padding: 12px 16px;
-            border-radius: 40px;
-            border: 1px solid #dce5f0;
+            padding: 12px 14px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
             background: white;
             min-width: 140px;
             flex: 1 0 130px;
             font-size: 0.9rem;
-            transition: 0.15s;
-        }
-        .add-section input:focus {
-            border-color: #2d7ee9;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(45,126,233,0.15);
         }
         .add-section input::placeholder {
-            color: #8ba0bc;
+            color: #8094a8;
+            font-size: 0.85rem;
+        }
+        .filename-badge {
+            background: #e9eef3;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #364f6b;
         }
         .footer-actions {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            margin-top: 28px;
+            margin-top: 25px;
         }
         .info-note {
-            color: #2c4c6e;
-            background: rgba(255,255,255,0.6);
-            backdrop-filter: blur(4px);
-            border-radius: 40px;
-            padding: 10px 26px;
+            color: #4b6a8b;
+            background: #ecf3fa;
+            border-radius: 30px;
+            padding: 8px 22px;
             font-size: 0.9rem;
-            border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
         }
         .btn:active {
-            transform: scale(0.96);
-        }
-        /* 表头复选框居中 */
-        #selectAll {
-            margin: 0 auto;
-            display: block;
+            transform: scale(0.97);
         }
     </style>
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="card">
-    <h1>
-        <i class="fas fa-sliders-h"></i> 主播流量配置 · 批量管理
-    </h1>
-    <div class="sub">
-        <i class="fas fa-magic" style="margin-right: 8px;"></i> 上次数据自动加载，一键更新日期+3.5天，支持批量删除和导出完整性检查。
-    </div>
+    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V3.0</h1>
+    <div class="sub">⏱️ 更新记录：
+        v1.0 - 上传需要配置的表格，点击「应用基准＆更新所有日期」，会自动在今天的日期基础上+3.5天；
+        v2.0 - 当日的配置起始时间支持自定义，在「基准」空内填写具体时间即可，会以当日基准时间+3.5天作为配置结束时间；
+        v3.0 - 上次数据自动加载，一键更新日期+3.5天，支持批量删除和导出完整性检查，没填完整会挨骂。</div>
 
     <!-- 工具栏 -->
     <div class="toolbar">
         <div class="upload-area">
             <label class="upload-label">
-                <i class="fas fa-cloud-upload-alt"></i> 上传 Excel
+                📂 上传 Excel (如需替换)
                 <input type="file" id="fileInput" accept=".xlsx, .xls">
             </label>
-            <span class="filename-badge" id="fileName"><i class="far fa-file-excel"></i> 未选择文件</span>
+            <span class="filename-badge" id="fileName">未选择文件</span>
         </div>
         <div class="base-time-control">
-            <span><i class="far fa-clock"></i> 基准</span>
+            <span>⏰ 基准时刻</span>
             <input type="text" id="baseTimeInput" value="1100" maxlength="4" placeholder="HHMM">
-            <button class="btn btn-outline" id="extractBaseBtn" title="从第一条开始时间提取"><i class="fas fa-sync-alt"></i></button>
+            <button class="btn btn-outline" id="extractBaseBtn" title="从第一条开始时间提取">↺ 提取</button>
         </div>
-        <button class="btn btn-primary" id="applyBaseBtn"><i class="fas fa-calendar-plus"></i> 应用基准 & 更新日期</button>
-        <button class="btn btn-outline" id="resetViewBtn"><i class="fas fa-undo-alt"></i> 重置表格</button>
-        <button class="btn btn-danger" id="deleteSelectedBtn"><i class="fas fa-trash-alt"></i> 删除选中行</button>
-        <button class="btn btn-outline" id="clearMemoryBtn"><i class="fas fa-broom"></i> 清除记忆</button>
+        <button class="btn btn-primary" id="applyBaseBtn">✨ 应用基准 & 更新所有日期 (+3.5天)</button>
+        <button class="btn btn-outline" id="resetViewBtn">🔄 重置表格</button>
+        <button class="btn btn-danger" id="deleteSelectedBtn">🗑️ 删除选中行</button>
+        <button class="btn btn-outline" id="clearMemoryBtn">🧹 清除记忆</button>
     </div>
 
-    <!-- 可编辑表格区域 -->
+    <!-- 可编辑表格区域（带复选框列） -->
     <div class="table-wrapper" id="tableWrapper">
         <table id="dataTable">
             <thead id="tableHeader">
@@ -373,21 +311,21 @@
     <!-- 新增行面板 -->
     <div class="add-section">
         <input type="text" id="newId" placeholder="主播ID" value="">
-        <input type="text" id="newPop" placeholder="人气系数" value="3">
-        <input type="text" id="newLike" placeholder="点赞系数" value="3">
+        <input type="text" id="newPop" placeholder="人气" value="3">
+        <input type="text" id="newLike" placeholder="点赞" value="3">
         <input type="text" id="newStart" placeholder="开始时间 (留空自动基准)">
         <input type="text" id="newEnd" placeholder="结束时间 (留空自动计算)">
         <input type="text" id="newRemark" placeholder="备注名">
-        <button class="btn btn-success" id="addRowBtn"><i class="fas fa-plus-circle"></i> 添加主播</button>
+        <button class="btn btn-success" id="addRowBtn">➕ 添加主播行</button>
     </div>
 
     <!-- 底部保存 -->
     <div class="footer-actions">
         <div class="info-note">
-            <i class="fas fa-check-circle" style="color: #2d7ee9;"></i> 双击单元格编辑，修改自动记忆。导出前自动检查空值。
+            💡 双击单元格可直接编辑，所有修改自动记忆。导出前自动检查空值。
         </div>
         <div>
-            <button class="btn btn-primary" id="saveFileBtn" style="background:#0f3a68; border:none;"><i class="fas fa-download"></i> 下载最新 Excel</button>
+            <button class="btn btn-primary" id="saveFileBtn" style="background:#0b3b5c; border-color:#0b3b5c;">⬇️ 下载最新 Excel</button>
         </div>
     </div>
 </div>
@@ -398,7 +336,7 @@
     let rows = [];               // 二维数组: [0]为表头, 之后每行数据 (6列, 不含复选框)
     let currentFileName = '未选择文件';
     const mandatoryCols = 6;     // 数据列数
-    const defaultHeader = ['主播ID', '人气系数', '点赞系数', '开始时间', '结束时间', ''];
+    const defaultHeader = ['主播ID', '人气', '点赞', '开始时间', '结束时间', ''];
 
     // ---------- 本地存储 ----------
     const STORAGE_KEY = 'trafficConfigRows';
@@ -525,7 +463,6 @@
         let tbodyHtml = '';
         for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
-            // 补齐6列
             while (row.length < mandatoryCols) row.push('');
             tbodyHtml += '<tr>';
             // 复选框列
@@ -539,7 +476,7 @@
         }
         tableBody.innerHTML = tbodyHtml;
 
-        // 绑定单元格输入事件 (实时更新rows并保存)
+        // 绑定单元格输入事件
         const inputs = document.querySelectorAll('#tableBody .cell-input');
         inputs.forEach(input => {
             input.addEventListener('input', function(e) {
@@ -552,16 +489,14 @@
             });
         });
 
-        // 绑定行复选框事件 (用于更新全选状态)
+        // 绑定复选框事件
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
         const selectAll = document.getElementById('selectAll');
         if (selectAll) {
-            // 全选/取消
             selectAll.addEventListener('change', function() {
                 const checked = this.checked;
                 rowCheckboxes.forEach(cb => cb.checked = checked);
             });
-            // 当行复选框变化时，更新全选状态
             rowCheckboxes.forEach(cb => {
                 cb.addEventListener('change', function() {
                     const allChecked = Array.from(rowCheckboxes).every(c => c.checked);
@@ -617,15 +552,15 @@
         renderTable();
     }
 
-    // 检查所有数据行是否完整（除表头外，每行前6列均不能为空字符串）
+    // 检查所有数据行是否完整
     function isAllDataComplete() {
-        if (rows.length <= 1) return true; // 没有数据行视为完整
+        if (rows.length <= 1) return true;
         for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
             for (let c = 0; c < mandatoryCols; c++) {
                 const val = row[c];
                 if (val === undefined || val === null || val.toString().trim() === '') {
-                    return false; // 发现空值
+                    return false;
                 }
             }
         }
@@ -637,7 +572,7 @@
         const file = e.target.files[0];
         if (!file) return;
         currentFileName = file.name;
-        fileNameSpan.innerHTML = `<i class="far fa-file-excel"></i> ${currentFileName}`;
+        fileNameSpan.textContent = currentFileName;
 
         const reader = new FileReader();
         reader.onload = (loadEvent) => {
@@ -667,7 +602,7 @@
         rows = [defaultHeader.slice()];
         renderTable();
         baseTimeInput.value = '1100';
-        fileNameSpan.innerHTML = '<i class="far fa-file-excel"></i> 未选择文件';
+        fileNameSpan.textContent = '未选择文件';
         fileInput.value = '';
         localStorage.removeItem(STORAGE_KEY);
     });
@@ -678,21 +613,18 @@
             rows = [defaultHeader.slice()];
             renderTable();
             baseTimeInput.value = '1100';
-            fileNameSpan.innerHTML = '<i class="far fa-file-excel"></i> 未选择文件';
+            fileNameSpan.textContent = '未选择文件';
             fileInput.value = '';
         }
     });
 
-    // 删除选中行
     deleteSelectedBtn.addEventListener('click', function() {
         const checkboxes = document.querySelectorAll('.row-checkbox:checked');
         if (checkboxes.length === 0) {
             alert('请先勾选要删除的行');
             return;
         }
-        // 收集要删除的行索引 (注意: 复选框的data-row是从1开始的真实索引)
         const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.row, 10));
-        // 降序排序，避免删除影响索引
         indicesToDelete.sort((a,b) => b - a);
         for (let idx of indicesToDelete) {
             if (idx > 0 && idx < rows.length) {
@@ -734,7 +666,6 @@
         renderTable();
         saveToLocalStorage();
 
-        // 清空新增栏
         newId.value = '';
         newPop.value = '3';
         newLike.value = '3';
@@ -744,14 +675,12 @@
     });
 
     saveFileBtn.addEventListener('click', function() {
-        // 导出前检查完整性
         if (!isAllDataComplete()) {
-            alert('❌ 导出失败：存在未填写的单元格（空值）。请检查所有数据行（主播ID、人气系数、点赞系数、开始时间、结束时间、备注）均已填写。');
+            alert('❌ 超级报错！！！睁大狗眼看看是不是所有的空都已填写。');
             return;
         }
 
         if (rows.length < 1) rows = [defaultHeader.slice()];
-        // 导出时只导出数据列（前6列），忽略复选框列
         const exportRows = rows.map(row => {
             const newRow = [];
             for (let i=0; i<mandatoryCols; i++) {
@@ -776,7 +705,7 @@
         }
         renderTable();
         baseTimeInput.value = extractBaseFromFirstRow();
-        fileNameSpan.innerHTML = '<i class="far fa-file-excel"></i> 已加载记忆';
+        fileNameSpan.textContent = '已加载记忆';
     })();
 
 })();
