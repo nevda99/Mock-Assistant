@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>流量配置提效工具 · 批量管理</title>
-    <!-- 使用之前简洁版本的样式，保留新功能 -->
+    <!-- 简洁样式 -->
     <style>
         * {
             box-sizing: border-box;
@@ -270,14 +270,15 @@
 </head>
 <body>
 <div class="card">
-    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V3.0</h1>
-    <div class="sub">
-  ⏱️ 更新记录：<br>
+    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V4.0</h1>
+<br>
+<br>
+<br>
+    <div class="sub">⏱️ 更新记录：<br>
   v1.0 - 上传需要配置的表格，点击「应用基准＆更新所有日期」，会自动在今天的日期基础上+3.5天；<br>
   v2.0 - 当日的配置起始时间支持自定义，在「基准」空内填写具体时间即可，会以当日基准时间+3.5天作为配置结束时间；<br>
   v3.0 - 上次数据自动加载，一键更新日期+3.5天，支持批量删除和导出完整性检查，没填完整会挨骂。<br>
-  v4.0 - 解决了一些已知问题。（其实是备注从必填改为选填了，thx for 闰之土做为QA找到这么多bug）
-</div>
+  v4.0 - 解决了一些已知问题。（其实是备注从必填改为选填了，thx for 闰之土做为QA找到这么多bug）</div>
 
     <!-- 工具栏 -->
     <div class="toolbar">
@@ -318,14 +319,14 @@
         <input type="text" id="newLike" placeholder="点赞" value="3">
         <input type="text" id="newStart" placeholder="开始时间 (留空自动基准)">
         <input type="text" id="newEnd" placeholder="结束时间 (留空自动计算)">
-        <input type="text" id="newRemark" placeholder="备注名（选填）">
+        <input type="text" id="newRemark" placeholder="备注名 (可选)">
         <button class="btn btn-success" id="addRowBtn">➕ 添加主播行</button>
     </div>
 
     <!-- 底部保存 -->
     <div class="footer-actions">
         <div class="info-note">
-            💡 双击单元格可直接编辑，所有修改自动记忆。导出前自动检查空值。
+            💡 双击单元格可编辑，修改自动记忆。导出时仅检查前5列，备注可选。
         </div>
         <div>
             <button class="btn btn-primary" id="saveFileBtn" style="background:#0b3b5c; border-color:#0b3b5c;">⬇️ 下载最新 Excel</button>
@@ -555,12 +556,13 @@
         renderTable();
     }
 
-    // 检查所有数据行是否完整
-    function mandatoryCols - 2 {
+    // 检查所有数据行是否完整（前5列必填，备注可选）
+    function isAllDataComplete() {
         if (rows.length <= 1) return true;
         for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
-            for (let c = 0; c < mandatoryCols; c++) {
+            // 只检查前5列（索引0~4），最后一列备注可以为空
+            for (let c = 0; c < mandatoryCols - 1; c++) {
                 const val = row[c];
                 if (val === undefined || val === null || val.toString().trim() === '') {
                     return false;
@@ -585,7 +587,7 @@
                 loadExcelToRows(workbook);
                 saveToLocalStorage();
             } catch (err) {
-                alert('解析Excel失败，请检查文件：' + err.message);
+                alert('那Excel格式对么你就往上传，好好检查检查再传，急啥呢：' + err.message);
             }
         };
         reader.readAsArrayBuffer(file);
@@ -593,7 +595,7 @@
 
     extractBaseBtn.addEventListener('click', function() {
         if (rows.length < 2) {
-            alert('表格中没有数据行，无法提取');
+            alert('表格里啥也没有，你让我弄啥？');
             return;
         }
         baseTimeInput.value = extractBaseFromFirstRow();
@@ -678,8 +680,8 @@
     });
 
     saveFileBtn.addEventListener('click', function() {
-        if (!mandatoryCols - 2) {
-            alert('❌ 超级报错！！！睁大狗眼看看是不是所有的空都已填写。');
+        if (!isAllDataComplete()) {
+            alert('❌ 超级大报错：仔细睁开眼镜好好看看，是不是有的空没填就点提交，你急啥呢？请检查并补充完整-。-');
             return;
         }
 
