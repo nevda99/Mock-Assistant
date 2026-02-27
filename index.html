@@ -317,7 +317,7 @@
         <input type="text" id="newLike" placeholder="点赞" value="3">
         <input type="text" id="newStart" placeholder="开始时间 (留空自动基准)">
         <input type="text" id="newEnd" placeholder="结束时间 (留空自动计算)">
-        <input type="text" id="newRemark" placeholder="备注名">
+        <input type="text" id="newRemark" placeholder="备注名（选填）">
         <button class="btn btn-success" id="addRowBtn">➕ 添加主播行</button>
     </div>
 
@@ -555,7 +555,7 @@
     }
 
     // 检查所有数据行是否完整
-    function isAllDataComplete() {
+    function mandatoryCols - 2 {
         if (rows.length <= 1) return true;
         for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
@@ -677,7 +677,7 @@
     });
 
     saveFileBtn.addEventListener('click', function() {
-        if (!isAllDataComplete()) {
+        if (!mandatoryCols - 2) {
             alert('❌ 超级报错！！！睁大狗眼看看是不是所有的空都已填写。');
             return;
         }
