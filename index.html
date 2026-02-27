@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流量配置提效工具 · 主播时段批量更新（记忆版）</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #f4f7fb;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .card {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,10,30,0.1);
+            padding: 28px 24px;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #0a2540;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sub {
+            color: #425466;
+            margin-bottom: 28px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 18px;
+            background: #f0f4fe;
+            border-radius: 0 12px 12px 0;
+            line-height: 1.5;
+            font-size: 0.98rem;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            align-items: flex-end;
+            background: #f9fafc;
+            padding: 20px 18px;
+            border-radius: 24px;
+            margin-bottom: 28px;
+            border: 1px solid #e2e8f0;
+        }
+        .upload-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .upload-label {
+            background: #ffffff;
+            border: 1px dashed #3b82f6;
+            border-radius: 40px;
+            padding: 10px 20px;
+            font-weight: 500;
+            color: #1e40af;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .upload-label:hover {
+            background: #eef2ff;
+            border-color: #2563eb;
+        }
+        .upload-label input {
+            display: none;
+        }
+        .base-time-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 6px 16px 6px 20px;
+            border-radius: 40px;
+            border: 1px solid #ccd9f0;
+        }
+        .base-time-control span {
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .base-time-control input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #b9c8e7;
+            border-radius: 30px;
+            font-family: monospace;
+            font-size: 1rem;
+            text-align: center;
+            background: #f8faff;
+            font-weight: 600;
+            color: #0f2b4b;
+        }
+        .base-time-control input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        .btn {
+            background: white;
+            border: 1px solid #bdcbe3;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 550;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .btn-primary {
+            background: #1e3a8a;
+            border: 1px solid #1e3a8a;
+            color: white;
+            box-shadow: 0 6px 14px rgba(30,58,138,0.25);
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        .btn-success {
+            background: #0b5e42;
+            border-color: #0b5e42;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #0f7353;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #9aa9c1;
+        }
+        .btn-outline:hover {
+            background: #e6edf8;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #dee6f0;
+            background: #ffffff;
+            margin: 24px 0 28px;
+            box-shadow: 0 6px 14px rgba(0,20,40,0.04);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 1000px;
+            font-size: 0.9rem;
+        }
+        th {
+            background: #f1f5f9;
+            padding: 16px 8px;
+            font-weight: 600;
+            color: #0c4a6e;
+            white-space: nowrap;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        td input {
+            width: 100%;
+            padding: 10px 8px;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            background: #fafdff;
+            font-size: 0.9rem;
+            transition: 0.1s;
+            font-family: monospace;
+        }
+        td input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        td input:hover {
+            border-color: #a0bbdf;
+            background: #ffffff;
+        }
+        .col-small {
+            max-width: 100px;
+        }
+        .add-section {
+            background: #f2f6fd;
+            padding: 22px 20px;
+            border-radius: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .add-section input {
+            padding: 12px 14px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            min-width: 140px;
+            flex: 1 0 130px;
+            font-size: 0.9rem;
+        }
+        .add-section input::placeholder {
+            color: #8094a8;
+            font-size: 0.85rem;
+        }
+        .filename-badge {
+            background: #e9eef3;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #364f6b;
+        }
+        .footer-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+        }
+        .info-note {
+            color: #4b6a8b;
+            background: #ecf3fa;
+            border-radius: 30px;
+            padding: 8px 22px;
+            font-size: 0.9rem;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+    </style>
+    <!-- SheetJS 用于读写excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="card">
+    <h1>📅 主播流量配置 · 3.5天滑动工具（自动记忆）</h1>
+    <div class="sub">⏱️ 上次数据已自动加载，直接点击“应用基准更新”调整日期即可。支持新增、修改、导出。</div>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+        <div class="upload-area">
+            <label class="upload-label">
+                📂 上传 Excel (如需替换)
+                <input type="file" id="fileInput" accept=".xlsx, .xls">
+            </label>
+            <span class="filename-badge" id="fileName">未选择文件</span>
+        </div>
+        <div class="base-time-control">
+            <span>⏰ 基准时刻</span>
+            <input type="text" id="baseTimeInput" value="1100" maxlength="4" placeholder="HHMM">
+            <button class="btn btn-outline" id="extractBaseBtn" title="从表格第一条开始时间提取">↺ 提取</button>
+        </div>
+        <button class="btn btn-primary" id="applyBaseBtn">✨ 应用基准 & 更新所有日期 (+3.5天)</button>
+        <button class="btn btn-outline" id="resetViewBtn">🔄 重置表格</button>
+        <button class="btn btn-outline" id="clearMemoryBtn">🧹 清除记忆</button>
+    </div>
+
+    <!-- 可编辑表格区域 -->
+    <div class="table-wrapper" id="tableWrapper">
+        <table id="dataTable">
+            <thead id="tableHeader">
+                <!-- 动态生成 -->
+            </thead>
+            <tbody id="tableBody">
+                <!-- 动态行 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 新增行面板 -->
+    <div class="add-section">
+        <input type="text" id="newId" placeholder="主播ID" value="">
+        <input type="text" id="newPop" placeholder="人气系数" value="3">
+        <input type="text" id="newLike" placeholder="点赞系数" value="3">
+        <input type="text" id="newStart" placeholder="开始时间 (留空自动基准)">
+        <input type="text" id="newEnd" placeholder="结束时间 (留空自动计算)">
+        <input type="text" id="newRemark" placeholder="备注名">
+        <button class="btn btn-success" id="addRowBtn">➕ 添加主播行</button>
+    </div>
+
+    <!-- 底部保存 -->
+    <div class="footer-actions">
+        <div class="info-note">
+            💡 双击单元格可直接编辑，所有修改自动记忆。
+        </div>
+        <div>
+            <button class="btn btn-primary" id="saveFileBtn" style="background:#0b3b5c; border-color:#0b3b5c;">⬇️ 下载更新后的 Excel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ---------- 全局状态 ----------
+    let rows = [];               // 二维数组: [0]为表头, 之后每行数据 (6列)
+    let currentFileName = '未选择文件';
+    const mandatoryCols = 6;     // 固定6列: 主播ID,人气系数,点赞系数,开始时间,结束时间,备注
+    const defaultHeader = ['主播ID', '人气系数', '点赞系数', '开始时间', '结束时间', ''];
+
+    // ---------- 本地存储 ----------
+    const STORAGE_KEY = 'trafficConfigRows';
+
+    function saveToLocalStorage() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+        } catch (e) {
+            console.warn('保存到本地存储失败', e);
+        }
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].length === mandatoryCols) {
+                    rows = parsed;
+                    return true;
+                }
+            } catch (e) {
+                console.warn('解析本地存储数据失败', e);
+            }
+        }
+        return false;
+    }
+    // -----------------------------
+
+    // DOM 元素
+    const fileInput = document.getElementById('fileInput');
+    const fileNameSpan = document.getElementById('fileName');
+    const baseTimeInput = document.getElementById('baseTimeInput');
+    const extractBaseBtn = document.getElementById('extractBaseBtn');
+    const applyBaseBtn = document.getElementById('applyBaseBtn');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    const clearMemoryBtn = document.getElementById('clearMemoryBtn');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const saveFileBtn = document.getElementById('saveFileBtn');
+    const tableHeader = document.getElementById('tableHeader');
+    const tableBody = document.getElementById('tableBody');
+
+    // 新增行输入框
+    const newId = document.getElementById('newId');
+    const newPop = document.getElementById('newPop');
+    const newLike = document.getElementById('newLike');
+    const newStart = document.getElementById('newStart');
+    const newEnd = document.getElementById('newEnd');
+    const newRemark = document.getElementById('newRemark');
+
+    // ---------- 辅助函数 ----------
+    function formatTwoDigits(n) {
+        return n < 10 ? '0' + n : '' + n;
+    }
+
+    function formatDateToYyyymmddHHMM(date) {
+        const y = date.getFullYear();
+        const m = formatTwoDigits(date.getMonth() + 1);
+        const d = formatTwoDigits(date.getDate());
+        const hh = formatTwoDigits(date.getHours());
+        const mm = formatTwoDigits(date.getMinutes());
+        return `${y}${m}${d}${hh}${mm}`;
+    }
+
+    function parseDateFromString(str) {
+        if (!str || str.length < 12) return null;
+        const s = String(str).replace(/\D/g, '');
+        if (s.length < 12) return null;
+        const year = parseInt(s.slice(0, 4), 10);
+        const month = parseInt(s.slice(4, 6), 10) - 1;
+        const day = parseInt(s.slice(6, 8), 10);
+        const hour = parseInt(s.slice(8, 10), 10);
+        const minute = parseInt(s.slice(10, 12), 10);
+        return new Date(year, month, day, hour, minute, 0);
+    }
+
+    function addThreePointFiveDays(startDate) {
+        if (!startDate) return null;
+        const ms = startDate.getTime() + 84 * 60 * 60 * 1000;
+        return new Date(ms);
+    }
+
+    function getTodayBaseDate(baseHHMM) {
+        const baseStr = String(baseHHMM).padStart(4, '0').slice(0, 4);
+        const hour = parseInt(baseStr.slice(0, 2), 10);
+        const minute = parseInt(baseStr.slice(2, 4), 10);
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
+    }
+
+    function extractBaseFromFirstRow() {
+        if (rows.length < 2) return '1100';
+        const firstDataRow = rows[1];
+        if (!firstDataRow || firstDataRow.length < 4) return '1100';
+        const startCell = firstDataRow[3];
+        if (!startCell) return '1100';
+        const str = String(startCell).replace(/\D/g, '');
+        if (str.length >= 12) {
+            return str.slice(8, 12);
+        } else if (str.length === 4) {
+            return str;
+        }
+        return '1100';
+    }
+
+    // 刷新表格UI
+    function renderTable() {
+        if (rows.length === 0) {
+            rows = [defaultHeader.slice()];
+        }
+
+        // 表头
+        let headerHtml = '<tr>';
+        const headerRow = rows[0];
+        for (let i = 0; i < mandatoryCols; i++) {
+            let colName = (headerRow[i] !== undefined && headerRow[i] !== '') ? headerRow[i] : (i === 5 ? '备注' : `列${i+1}`);
+            headerHtml += `<th>${colName}</th>`;
+        }
+        headerHtml += '</tr>';
+        tableHeader.innerHTML = headerHtml;
+
+        // 表体
+        let tbodyHtml = '';
+        for (let r = 1; r < rows.length; r++) {
+            const row = rows[r];
+            while (row.length < mandatoryCols) row.push('');
+            tbodyHtml += '<tr>';
+            for (let c = 0; c < mandatoryCols; c++) {
+                const cellValue = row[c] !== null && row[c] !== undefined ? row[c] : '';
+                tbodyHtml += `<td><input type="text" class="cell-input" data-row="${r}" data-col="${c}" value="${String(cellValue).replace(/"/g, '&quot;')}"></td>`;
+            }
+            tbodyHtml += '</tr>';
+        }
+        tableBody.innerHTML = tbodyHtml;
+
+        // 绑定input事件，实时更新rows并保存
+        const inputs = document.querySelectorAll('#tableBody .cell-input');
+        inputs.forEach(input => {
+            input.addEventListener('input', function(e) {
+                const rowIdx = parseInt(this.dataset.row, 10);
+                const colIdx = parseInt(this.dataset.col, 10);
+                if (rows[rowIdx] && rows[rowIdx][colIdx] !== undefined) {
+                    rows[rowIdx][colIdx] = this.value;
+                    saveToLocalStorage();   // 编辑后自动记忆
+                }
+            });
+        });
+    }
+
+    // 基于基准更新所有数据行的 D / E 列
+    function applyBaseUpdate() {
+        if (rows.length <= 1) {
+            alert('暂无主播数据，请先上传文件或手动添加行');
+            return;
+        }
+        let baseStr = baseTimeInput.value.trim();
+        if (!/^\d{1,4}$/.test(baseStr)) {
+            alert('基准时刻应为4位数字，例如 1100 代表11:00');
+            return;
+        }
+        baseStr = baseStr.padStart(4, '0').slice(0,4);
+        const baseDate = getTodayBaseDate(baseStr);
+
+        for (let i = 1; i < rows.length; i++) {
+            const startDate = new Date(baseDate.getTime());
+            const endDate = addThreePointFiveDays(startDate);
+            rows[i][3] = formatDateToYyyymmddHHMM(startDate);
+            rows[i][4] = formatDateToYyyymmddHHMM(endDate);
+        }
+        renderTable();
+        saveToLocalStorage();   // 更新后记忆
+    }
+
+    // 从excel加载数据
+    function loadExcelToRows(workbook) {
+        const firstSheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[firstSheetName];
+        const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        if (data.length === 0) {
+            rows = [defaultHeader.slice()];
+        } else {
+            rows = data.map(row => {
+                const newRow = [];
+                for (let i = 0; i < mandatoryCols; i++) {
+                    newRow.push(row[i] !== undefined ? String(row[i]) : '');
+                }
+                return newRow;
+            });
+        }
+        if (rows[0].every(cell => cell === '')) {
+            rows[0] = defaultHeader.slice();
+        }
+        renderTable();
+    }
+
+    // 处理上传文件
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        currentFileName = file.name;
+        fileNameSpan.textContent = currentFileName;
+
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+            try {
+                const data = new Uint8Array(loadEvent.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: true });
+                loadExcelToRows(workbook);
+                saveToLocalStorage();   // 上传后记忆
+            } catch (err) {
+                alert('解析Excel失败，请检查文件：' + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // 提取基准按钮
+    extractBaseBtn.addEventListener('click', function() {
+        if (rows.length < 2) {
+            alert('表格中没有数据行，无法提取');
+            return;
+        }
+        baseTimeInput.value = extractBaseFromFirstRow();
+    });
+
+    // 应用基准更新
+    applyBaseBtn.addEventListener('click', applyBaseUpdate);
+
+    // 重置视图（清空至默认表头，并清除记忆）
+    resetViewBtn.addEventListener('click', function() {
+        rows = [defaultHeader.slice()];
+        renderTable();
+        baseTimeInput.value = '1100';
+        fileNameSpan.textContent = '未选择文件';
+        fileInput.value = '';
+        localStorage.removeItem(STORAGE_KEY);  // 清除记忆
+    });
+
+    // 清除记忆按钮（只清除存储，不重置当前显示）
+    clearMemoryBtn.addEventListener('click', function() {
+        if (confirm('确定清除所有已保存的数据吗？下次打开将显示空白表格。')) {
+            localStorage.removeItem(STORAGE_KEY);
+            // 可选项：同时重置当前表格为默认表头
+            rows = [defaultHeader.slice()];
+            renderTable();
+            baseTimeInput.value = '1100';
+            fileNameSpan.textContent = '未选择文件';
+            fileInput.value = '';
+        }
+    });
+
+    // 新增行
+    addRowBtn.addEventListener('click', function() {
+        let id = newId.value.trim();
+        let pop = newPop.value.trim() || '3';
+        let like = newLike.value.trim() || '3';
+        let start = newStart.value.trim();
+        let end = newEnd.value.trim();
+        let remark = newRemark.value.trim();
+
+        if (start === '') {
+            const baseStr = baseTimeInput.value.padStart(4, '0').slice(0,4);
+            const baseDate = getTodayBaseDate(baseStr);
+            start = formatDateToYyyymmddHHMM(baseDate);
+        }
+        if (end === '') {
+            const startDate = parseDateFromString(start);
+            if (startDate) {
+                const endDate = addThreePointFiveDays(startDate);
+                end = formatDateToYyyymmddHHMM(endDate);
+            } else {
+                const baseStr = baseTimeInput.value.padStart(4, '0').slice(0,4);
+                const baseDate = getTodayBaseDate(baseStr);
+                const endDate = addThreePointFiveDays(baseDate);
+                end = formatDateToYyyymmddHHMM(endDate);
+            }
+        }
+
+        const newRow = [id, pop, like, start, end, remark];
+        rows.push(newRow);
+        renderTable();
+        saveToLocalStorage();   // 新增后记忆
+
+        // 清空新增栏
+        newId.value = '';
+        newPop.value = '3';
+        newLike.value = '3';
+        newStart.value = '';
+        newEnd.value = '';
+        newRemark.value = '';
+    });
+
+    // 保存为excel文件
+    saveFileBtn.addEventListener('click', function() {
+        if (rows.length < 1) rows = [defaultHeader.slice()];
+        const exportRows = rows.map(row => {
+            const newRow = [];
+            for (let i=0; i<mandatoryCols; i++) {
+                newRow.push(row[i] !== undefined ? row[i] : '');
+            }
+            return newRow;
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(exportRows);
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}${formatTwoDigits(now.getMonth()+1)}${formatTwoDigits(now.getDate())}`;
+        const fileName = `主播配置_${dateStr}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    });
+
+    // ---------- 初始化：先尝试加载本地存储，否则默认表头 ----------
+    (function init() {
+        if (!loadFromLocalStorage()) {
+            rows = [defaultHeader.slice()];
+        }
+        renderTable();
+        // 根据已有数据设置基准时刻
+        baseTimeInput.value = extractBaseFromFirstRow();
+        // 文件名清空（记忆不记忆文件名）
+        fileNameSpan.textContent = '已加载记忆';
+    })();
+
+})();
+</script>
+</body>
+</html>
