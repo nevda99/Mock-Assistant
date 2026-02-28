@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流量配置提效工具 · 批量管理</title>
+    <title>流量配置提效工具 · 登录验证</title>
     <!-- 简洁样式 -->
     <style>
         * {
@@ -19,6 +19,72 @@
             align-items: center;
             padding: 16px;
         }
+        /* --- 登录层样式 Start --- */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f4f7fb;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,10,30,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0a2540;
+            margin-bottom: 24px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .login-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .login-btn:hover {
+            background: #2563eb;
+        }
+        .error-msg {
+            color: #ef4444;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        /* --- 登录层样式 End --- */
+
         .card {
             max-width: 1400px;
             width: 100%;
@@ -26,6 +92,8 @@
             border-radius: 28px;
             box-shadow: 0 20px 40px rgba(0,10,30,0.1);
             padding: 28px 24px;
+            /* 默认隐藏主界面，防止闪烁 */
+            display: none; 
         }
         h1 {
             font-size: 1.9rem;
@@ -264,13 +332,38 @@
         .btn:active {
             transform: scale(0.97);
         }
+        .user-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #64748b;
+            cursor: pointer;
+        }
+        .user-display:hover {
+            color: #b91c1c;
+        }
     </style>
     <!-- SheetJS -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<div class="card">
-    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V4.0</h1>
+
+<!-- 登录遮罩层 -->
+<div id="loginOverlay">
+    <div class="login-card">
+        <div class="login-title">🔒 流量配置工具 · 登录</div>
+        <input type="text" id="usernameInput" class="login-input" placeholder="请输入账号" autocomplete="off">
+        <input type="password" id="passwordInput" class="login-input" placeholder="请输入密码">
+        <button id="loginBtn" class="login-btn">立即登录</button>
+        <div id="loginError" class="error-msg">账号或密码错误，请重试</div>
+    </div>
+</div>
+
+<!-- 主界面 -->
+<div class="card" id="mainApp">
+    <div class="user-display" id="logoutBtn" title="点击退出登录">👤 <span id="currentUser">User</span> (退出)</div>
+    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V4.1</h1>
 <br>
 <br>
 <br>
@@ -278,7 +371,8 @@
   v1.0 - 上传需要配置的表格，点击「应用基准＆更新所有日期」，会自动在今天的日期基础上+3.5天；<br>
   v2.0 - 上次数据自动加载，支持批量删除和导出完整性检查，没填完整会挨骂；<br>
   v3.0 - 解决了一些已知问题；（其实是备注从必填改为选填了，thx for 闰之土做为QA找到这么多bug）<br>
-  v4.0 - 新增了一键跳转配置平台的Button。
+  v4.0 - 新增了一键跳转配置平台的Button。<br>
+  v4.1 - 增加了安全登录验证功能。
 </div>
 
     <!-- 工具栏 -->
@@ -338,6 +432,72 @@
 
 <script>
 (function() {
+    // ---------- 登录逻辑 Start ----------
+    const ACCOUNTS = {
+        "admin": "123456",
+        "makuo": "666888",
+        "kuaishou": "ks2026",
+        "operator": "op123",
+        "guest": "000000"
+    };
+
+    const loginOverlay = document.getElementById('loginOverlay');
+    const mainApp = document.getElementById('mainApp');
+    const usernameInput = document.getElementById('usernameInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const currentUserSpan = document.getElementById('currentUser');
+
+    // 检查是否已登录 (使用 sessionStorage，关闭浏览器即失效)
+    const sessionUser = sessionStorage.getItem('trafficToolUser');
+    if (sessionUser) {
+        showApp(sessionUser);
+    }
+
+    function showApp(user) {
+        loginOverlay.style.display = 'none';
+        mainApp.style.display = 'block';
+        currentUserSpan.textContent = user;
+    }
+
+    function handleLogin() {
+        const u = usernameInput.value.trim();
+        const p = passwordInput.value.trim();
+
+        if (ACCOUNTS[u] && ACCOUNTS[u] === p) {
+            sessionStorage.setItem('trafficToolUser', u);
+            showApp(u);
+            loginError.style.display = 'none';
+        } else {
+            loginError.style.display = 'block';
+            // 简单的抖动动画效果
+            const card = document.querySelector('.login-card');
+            card.style.transform = 'translateX(10px)';
+            setTimeout(() => card.style.transform = 'translateX(-10px)', 100);
+            setTimeout(() => card.style.transform = 'translateX(0)', 200);
+        }
+    }
+
+    loginBtn.addEventListener('click', handleLogin);
+    
+    // 回车键登录支持
+    passwordInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') handleLogin();
+    });
+    usernameInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') passwordInput.focus();
+    });
+
+    // 退出登录
+    logoutBtn.addEventListener('click', function() {
+        sessionStorage.removeItem('trafficToolUser');
+        location.reload();
+    });
+    // ---------- 登录逻辑 End ----------
+
+
     // ---------- 全局状态 ----------
     let rows = [];               // 二维数组: [0]为表头, 之后每行数据 (6列, 不含复选框)
     let currentFileName = '未选择文件';
