@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流量配置提效工具 · 批量管理</title>
+    <title>流量配置提效工具 · 批量管理（路径复制+跳转合并）</title>
     <!-- 简洁样式 -->
     <style>
         * {
@@ -20,7 +20,7 @@
             padding: 16px;
         }
         .card {
-            max-width: 1400px;
+            max-width: 1500px;
             width: 100%;
             background: white;
             border-radius: 28px;
@@ -28,15 +28,13 @@
             padding: 28px 24px;
         }
         h1 {
-            font-size: 1.9rem;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: #0a2540;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+           font-size: 1.9rem;
+           font-weight: 600;
+           margin-top: 0;
+           margin-bottom: 8px;
+           color: #0a2540;
+           text-align: center;
+	}
         .sub {
             color: #425466;
             margin-bottom: 28px;
@@ -171,7 +169,7 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            min-width: 1100px;
+            min-width: 1200px;
             font-size: 0.9rem;
         }
         th {
@@ -186,14 +184,18 @@
             width: 40px;
             text-align: center;
         }
+        th:nth-child(2) {
+            width: 60px;
+            text-align: center;
+        }
         td {
-            padding: 8px 6px;
+            padding: 8px 4px;
             border-bottom: 1px solid #e2e8f0;
             vertical-align: middle;
         }
         td input[type="text"] {
             width: 100%;
-            padding: 10px 8px;
+            padding: 10px 6px;
             border: 1px solid transparent;
             border-radius: 14px;
             background: #fafdff;
@@ -250,8 +252,9 @@
         .footer-actions {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 16px;
             margin-top: 25px;
         }
         .info-note {
@@ -264,22 +267,57 @@
         .btn:active {
             transform: scale(0.97);
         }
+        .download-folder-setting {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            border: 1px solid #ccd9f0;
+            flex: 2 1 auto;
+        }
+        .download-folder-setting input {
+            flex: 1;
+            min-width: 300px;
+            padding: 8px 12px;
+            border: 1px solid #b9c8e7;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            background: #f8faff;
+        }
+        .download-folder-setting input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .btn-special {
+            background: #0b3b5c;
+            border-color: #0b3b5c;
+            color: white;
+        }
     </style>
     <!-- SheetJS -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="card">
-    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V4.0</h1>
-<br>
-<br>
-<br>
+    <h1>📅 Makuoの主播流量配置 · 3.5天滑动配置工具 V2.3</h1>
+    <br><br><br>
     <div class="sub">⏱️ 更新记录：<br>
-  v1.0 - 上传需要配置的表格，点击「应用基准＆更新所有日期」，会自动在今天的日期基础上+3.5天；<br>
-  v2.0 - 上次数据自动加载，支持批量删除和导出完整性检查，没填完整会挨骂；<br>
-  v3.0 - 解决了一些已知问题；（其实是备注从必填改为选填了，thx for 闰之土做为QA找到这么多bug）<br>
-  v4.0 - 新增了一键跳转配置平台的Button。
-</div>
+      v1.0 - 上传表格，自动更新日期+3.5天；<br>
+      v1.1 - 支持自定义基准时刻；<br>
+      v1.2 - 自动记忆、批量删除、导出完整性检查；<br>
+      v1.3 - 解决了一些已知问题；<br>
+      v2.0 - 新增手动标记列，系数＞5自动标记；<br>
+      v2.1 - 解决了一些已知问题；<br>
+      v2.2 - 解决了一些已知问题；新增复制路径功能<br>
+      v2.3 - 解决了一些已知问题；优化：路径可选（浏览提示），复制与跳转合并，底部按钮平铺一行。</div>
 
     <!-- 工具栏 -->
     <div class="toolbar">
@@ -296,19 +334,20 @@
             <button class="btn btn-outline" id="extractBaseBtn" title="从第一条开始时间提取">↺ 提取</button>
         </div>
         <button class="btn btn-primary" id="applyBaseBtn">✨ 应用基准 & 更新所有日期 (+3.5天)</button>
+        <button class="btn btn-outline" id="refreshManualBtn">🔄 刷新手动标记</button>
         <button class="btn btn-outline" id="resetViewBtn">🔄 重置表格</button>
         <button class="btn btn-danger" id="deleteSelectedBtn">🗑️ 删除选中行</button>
         <button class="btn btn-outline" id="clearMemoryBtn">🧹 清除记忆</button>
     </div>
 
-    <!-- 可编辑表格区域（带复选框列） -->
+    <!-- 可编辑表格区域（带复选框列 + 手动标记列） -->
     <div class="table-wrapper" id="tableWrapper">
         <table id="dataTable">
             <thead id="tableHeader">
-                <!-- 动态生成：第一列为复选框全选 -->
+                <!-- 动态生成：第一列复选框全选，第二列手动标记，后面6列数据 -->
             </thead>
             <tbody id="tableBody">
-                <!-- 动态行：第一列为行复选框，后面6列为数据 -->
+                <!-- 动态行 -->
             </tbody>
         </table>
     </div>
@@ -324,51 +363,103 @@
         <button class="btn btn-success" id="addRowBtn">➕ 添加主播行</button>
     </div>
 
-    <!-- 底部保存 -->
+    <!-- 底部：下载文件夹设置 + 操作按钮 平铺一行 -->
     <div class="footer-actions">
-        <div class="info-note">
-            💡 双击单元格可编辑，修改自动记忆（备注非必填）。
+        <div class="download-folder-setting">
+            <span>📁 下载文件夹</span>
+            <input type="text" id="downloadFolder" placeholder="如 /Users/你的用户名/Downloads">
+            <button class="btn btn-outline" id="browseFolderBtn" style="padding: 6px 12px;">浏览...</button>
+            <button class="btn btn-outline" id="saveFolderBtn" style="padding: 6px 12px;">保存</button>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <button class="btn btn-primary" id="saveFileBtn" style="background:#0b3b5c; border-color:#0b3b5c;">⬇️ 下载最新 Excel</button>
-            <a href="https://starship.corp.kuaishou.com/phoenix/live-v2/live-multiple" target="_blank" class="btn btn-primary" style="background:#0b3b5c; border-color:#0b3b5c; text-decoration: none;">🚀 一键跳转配置页面</a>
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-special" id="saveFileBtn">⬇️ 下载 & 过滤</button>
+            <button class="btn btn-primary btn-special" id="jumpAndCopyBtn">🚀 跳转配置 & 复制路径</button>
         </div>
+    </div>
+    <div style="margin-top: 10px; font-size: 0.85rem; color: #4b6a8b; text-align: right;">
+        💡 先点击“下载 & 过滤”，再点击“跳转配置 & 复制路径”，即可自动复制文件路径并跳转。
     </div>
 </div>
 
 <script>
 (function() {
     // ---------- 全局状态 ----------
-    let rows = [];               // 二维数组: [0]为表头, 之后每行数据 (6列, 不含复选框)
+    let rows = [];               // 二维数组: [0]为表头, 之后每行数据 (6列)
+    let manualFlags = [];        // 与rows数据行对应 (索引1开始) 的布尔值，true=手动标记（系数＞5自动勾选）
     let currentFileName = '未选择文件';
     const mandatoryCols = 6;     // 数据列数
     const defaultHeader = ['主播ID', '人气', '点赞', '开始时间', '结束时间', ''];
 
+    // 最近一次导出的文件名（用于复制路径）
+    let lastExportedFileName = '';
+
     // ---------- 本地存储 ----------
     const STORAGE_KEY = 'trafficConfigRows';
+    const MANUAL_KEY = 'trafficConfigManual';
+    const FOLDER_KEY = 'downloadFolder';
+
+    // 获取默认下载文件夹（Mac常用路径）
+    function getDefaultDownloadFolder() {
+        const saved = localStorage.getItem(FOLDER_KEY);
+        if (saved) return saved;
+        return '/Users/您的用户名/Downloads';  // 提醒用户修改
+    }
+
+    function saveDownloadFolder(folder) {
+        localStorage.setItem(FOLDER_KEY, folder);
+    }
 
     function saveToLocalStorage() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+            localStorage.setItem(MANUAL_KEY, JSON.stringify(manualFlags));
         } catch (e) {
             console.warn('保存到本地存储失败', e);
         }
     }
 
     function loadFromLocalStorage() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
+        const savedRows = localStorage.getItem(STORAGE_KEY);
+        const savedManual = localStorage.getItem(MANUAL_KEY);
+        if (savedRows) {
             try {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].length === mandatoryCols) {
-                    rows = parsed;
-                    return true;
+                const parsedRows = JSON.parse(savedRows);
+                if (Array.isArray(parsedRows) && parsedRows.length > 0 && parsedRows[0].length === mandatoryCols) {
+                    rows = parsedRows;
+                } else {
+                    rows = [defaultHeader.slice()];
                 }
             } catch (e) {
-                console.warn('解析本地存储数据失败', e);
+                rows = [defaultHeader.slice()];
             }
+        } else {
+            rows = [defaultHeader.slice()];
         }
-        return false;
+
+        if (savedManual) {
+            try {
+                const parsedManual = JSON.parse(savedManual);
+                if (Array.isArray(parsedManual) && parsedManual.length === rows.length - 1) {
+                    manualFlags = parsedManual;
+                } else {
+                    rebuildManualFlags();
+                }
+            } catch (e) {
+                rebuildManualFlags();
+            }
+        } else {
+            rebuildManualFlags();
+        }
+    }
+
+    function rebuildManualFlags() {
+        manualFlags = [];
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const pop = parseFloat(row[1]) || 0;
+            const like = parseFloat(row[2]) || 0;
+            manualFlags.push(pop > 5 || like > 5);
+        }
     }
 
     // DOM 元素
@@ -377,21 +468,44 @@
     const baseTimeInput = document.getElementById('baseTimeInput');
     const extractBaseBtn = document.getElementById('extractBaseBtn');
     const applyBaseBtn = document.getElementById('applyBaseBtn');
+    const refreshManualBtn = document.getElementById('refreshManualBtn');
     const resetViewBtn = document.getElementById('resetViewBtn');
     const clearMemoryBtn = document.getElementById('clearMemoryBtn');
     const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
     const addRowBtn = document.getElementById('addRowBtn');
     const saveFileBtn = document.getElementById('saveFileBtn');
+    const jumpAndCopyBtn = document.getElementById('jumpAndCopyBtn');
+    const downloadFolderInput = document.getElementById('downloadFolder');
+    const saveFolderBtn = document.getElementById('saveFolderBtn');
+    const browseFolderBtn = document.getElementById('browseFolderBtn');
     const tableHeader = document.getElementById('tableHeader');
     const tableBody = document.getElementById('tableBody');
 
-    // 新增行输入框
     const newId = document.getElementById('newId');
     const newPop = document.getElementById('newPop');
     const newLike = document.getElementById('newLike');
     const newStart = document.getElementById('newStart');
     const newEnd = document.getElementById('newEnd');
     const newRemark = document.getElementById('newRemark');
+
+    // 初始化下载文件夹输入框
+    downloadFolderInput.value = getDefaultDownloadFolder();
+
+    // 保存文件夹设置
+    saveFolderBtn.addEventListener('click', function() {
+        const folder = downloadFolderInput.value.trim();
+        if (folder) {
+            saveDownloadFolder(folder);
+            alert('下载文件夹路径已保存');
+        } else {
+            alert('请输入有效的文件夹路径');
+        }
+    });
+
+    // 浏览按钮提示（因浏览器安全限制，只能手动填写）
+    browseFolderBtn.addEventListener('click', function() {
+        alert('由于浏览器安全限制，无法直接选择文件夹。请手动填写下载文件夹的完整路径。\n\n常见路径：\nMac: /Users/您的用户名/Downloads\nWindows: C:\\Users\\您的用户名\\Downloads');
+    });
 
     // ---------- 辅助函数 ----------
     function formatTwoDigits(n) {
@@ -448,15 +562,15 @@
         return '1100';
     }
 
-    // 刷新表格UI (包含复选框列)
     function renderTable() {
         if (rows.length === 0) {
             rows = [defaultHeader.slice()];
+            manualFlags = [];
         }
 
-        // 构建表头：7列 (复选框 + 原6列)
         let headerHtml = '<tr>';
         headerHtml += `<th><input type="checkbox" id="selectAll" title="全选/取消"></th>`;
+        headerHtml += `<th>🖐️手动</th>`;
         const headerRow = rows[0];
         for (let i = 0; i < mandatoryCols; i++) {
             let colName = (headerRow[i] !== undefined && headerRow[i] !== '') ? headerRow[i] : (i === 5 ? '备注' : `列${i+1}`);
@@ -465,15 +579,14 @@
         headerHtml += '</tr>';
         tableHeader.innerHTML = headerHtml;
 
-        // 构建表体
         let tbodyHtml = '';
         for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
             while (row.length < mandatoryCols) row.push('');
             tbodyHtml += '<tr>';
-            // 复选框列
             tbodyHtml += `<td style="text-align:center"><input type="checkbox" class="row-checkbox" data-row="${r}"></td>`;
-            // 6个数据列
+            const manualChecked = manualFlags[r-1] ? 'checked' : '';
+            tbodyHtml += `<td style="text-align:center"><input type="checkbox" class="manual-checkbox" data-row="${r}" ${manualChecked}></td>`;
             for (let c = 0; c < mandatoryCols; c++) {
                 const cellValue = row[c] !== null && row[c] !== undefined ? row[c] : '';
                 tbodyHtml += `<td><input type="text" class="cell-input" data-row="${r}" data-col="${c}" value="${String(cellValue).replace(/"/g, '&quot;')}"></td>`;
@@ -482,7 +595,6 @@
         }
         tableBody.innerHTML = tbodyHtml;
 
-        // 绑定单元格输入事件
         const inputs = document.querySelectorAll('#tableBody .cell-input');
         inputs.forEach(input => {
             input.addEventListener('input', function(e) {
@@ -495,7 +607,15 @@
             });
         });
 
-        // 绑定复选框事件
+        const manualCbs = document.querySelectorAll('.manual-checkbox');
+        manualCbs.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const rowIdx = parseInt(this.dataset.row, 10);
+                manualFlags[rowIdx-1] = this.checked;
+                saveToLocalStorage();
+            });
+        });
+
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
         const selectAll = document.getElementById('selectAll');
         if (selectAll) {
@@ -512,7 +632,6 @@
         }
     }
 
-    // 基于基准更新所有数据行的 D / E 列
     function applyBaseUpdate() {
         if (rows.length <= 1) {
             alert('暂无主播数据，请先上传文件或手动添加行');
@@ -527,6 +646,7 @@
         const baseDate = getTodayBaseDate(baseStr);
 
         for (let i = 1; i < rows.length; i++) {
+            if (manualFlags[i-1]) continue;
             const startDate = new Date(baseDate.getTime());
             const endDate = addThreePointFiveDays(startDate);
             rows[i][3] = formatDateToYyyymmddHHMM(startDate);
@@ -536,7 +656,6 @@
         saveToLocalStorage();
     }
 
-    // 从excel加载数据
     function loadExcelToRows(workbook) {
         const firstSheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[firstSheetName];
@@ -555,15 +674,14 @@
         if (rows[0].every(cell => cell === '')) {
             rows[0] = defaultHeader.slice();
         }
+        rebuildManualFlags();
         renderTable();
     }
 
-    // 检查所有数据行是否完整（前5列必填，备注可选）
     function isAllDataComplete() {
         if (rows.length <= 1) return true;
         for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
-            // 只检查前5列（索引0~4），最后一列备注可以为空
             for (let c = 0; c < mandatoryCols - 1; c++) {
                 const val = row[c];
                 if (val === undefined || val === null || val.toString().trim() === '') {
@@ -572,6 +690,23 @@
             }
         }
         return true;
+    }
+
+    function getFilteredExportRows() {
+        const header = rows[0];
+        const filteredData = [];
+        let filteredCount = 0;
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const pop = parseFloat(row[1]) || 0;
+            const like = parseFloat(row[2]) || 0;
+            if (pop > 5 || like > 5) {
+                filteredCount++;
+                continue;
+            }
+            filteredData.push(row);
+        }
+        return { header, filteredData, filteredCount };
     }
 
     // ---------- 事件绑定 ----------
@@ -605,19 +740,29 @@
 
     applyBaseBtn.addEventListener('click', applyBaseUpdate);
 
+    refreshManualBtn.addEventListener('click', function() {
+        rebuildManualFlags();
+        renderTable();
+        saveToLocalStorage();
+    });
+
     resetViewBtn.addEventListener('click', function() {
         rows = [defaultHeader.slice()];
+        manualFlags = [];
         renderTable();
         baseTimeInput.value = '1100';
         fileNameSpan.textContent = '未选择文件';
         fileInput.value = '';
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(MANUAL_KEY);
     });
 
     clearMemoryBtn.addEventListener('click', function() {
         if (confirm('确定清除所有已保存的数据吗？下次打开将显示空白表格。')) {
             localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(MANUAL_KEY);
             rows = [defaultHeader.slice()];
+            manualFlags = [];
             renderTable();
             baseTimeInput.value = '1100';
             fileNameSpan.textContent = '未选择文件';
@@ -636,6 +781,7 @@
         for (let idx of indicesToDelete) {
             if (idx > 0 && idx < rows.length) {
                 rows.splice(idx, 1);
+                manualFlags.splice(idx-1, 1);
             }
         }
         renderTable();
@@ -670,6 +816,9 @@
 
         const newRow = [id, pop, like, start, end, remark];
         rows.push(newRow);
+        const popNum = parseFloat(pop) || 0;
+        const likeNum = parseFloat(like) || 0;
+        manualFlags.push(popNum > 5 || likeNum > 5);
         renderTable();
         saveToLocalStorage();
 
@@ -681,35 +830,58 @@
         newRemark.value = '';
     });
 
+    // 导出文件
     saveFileBtn.addEventListener('click', function() {
         if (!isAllDataComplete()) {
             alert('❌ 超级大报错：仔细睁开眼镜好好看看，是不是有的空没填就点提交，你急啥呢？请检查并补充完整-。-');
             return;
         }
 
-        if (rows.length < 1) rows = [defaultHeader.slice()];
-        const exportRows = rows.map(row => {
-            const newRow = [];
-            for (let i=0; i<mandatoryCols; i++) {
-                newRow.push(row[i] !== undefined ? row[i] : '');
-            }
-            return newRow;
-        });
+        const { header, filteredData, filteredCount } = getFilteredExportRows();
 
+        if (filteredCount > 0) {
+            if (!confirm(`⚠️ 检测到 ${filteredCount} 行系数＞5（已自动标记），这些行将被剔除，不包含在导出的配置表中。是否继续导出？`)) {
+                return;
+            }
+        }
+
+        const exportRows = [header, ...filteredData];
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(exportRows);
         XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
         const now = new Date();
         const dateStr = `${now.getFullYear()}${formatTwoDigits(now.getMonth()+1)}${formatTwoDigits(now.getDate())}`;
         const fileName = `主播配置_${dateStr}.xlsx`;
+        lastExportedFileName = fileName;
         XLSX.writeFile(wb, fileName);
+    });
+
+    // 合并按钮：复制路径 + 跳转
+    jumpAndCopyBtn.addEventListener('click', function() {
+        if (!lastExportedFileName) {
+            alert('请先点击“下载 & 过滤”导出文件');
+            return;
+        }
+        const folder = downloadFolderInput.value.trim();
+        if (!folder) {
+            alert('请先设置下载文件夹路径');
+            return;
+        }
+        // 拼接路径
+        let fullPath = folder.endsWith('/') || folder.endsWith('\\') ? folder + lastExportedFileName : folder + '/' + lastExportedFileName;
+        // 复制路径
+        navigator.clipboard.writeText(fullPath).then(() => {
+            // 复制成功后跳转
+            window.open('https://starship.corp.kuaishou.com/phoenix/live-v2/live-multiple', '_blank');
+        }).catch(err => {
+            alert('复制失败，请手动复制路径：' + fullPath);
+            window.open('https://starship.corp.kuaishou.com/phoenix/live-v2/live-multiple', '_blank');
+        });
     });
 
     // ---------- 初始化 ----------
     (function init() {
-        if (!loadFromLocalStorage()) {
-            rows = [defaultHeader.slice()];
-        }
+        loadFromLocalStorage();
         renderTable();
         baseTimeInput.value = extractBaseFromFirstRow();
         fileNameSpan.textContent = '已加载记忆';
