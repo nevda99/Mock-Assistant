@@ -386,13 +386,15 @@
             <button class="btn btn-outline" id="clearScriptInputBtn">清空</button>
         </div>
         <div id="scriptOutput" style="display:none; margin-top:14px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; margin-bottom:6px;">
                 <span style="font-size:0.85rem; font-weight:600; color:#166534;">✅ 脚本已生成（共 <span id="scriptIdCount">0</span> 个主播ID）</span>
-                <button class="btn btn-success" id="copyScriptBtn" style="padding:6px 18px; font-size:0.85rem;">📋 复制脚本</button>
-                <button class="btn btn-primary" onclick="window.open('https://starship.corp.kuaishou.com/phoenix/portal/render2/live2/prod/amis/popularity-assistant-optimization','_blank')" style="padding:6px 18px; font-size:0.85rem;">🔗 跳转人气助手</button>
             </div>
             <textarea id="scriptOutputText" readonly style="width:100%; min-height:160px; font-family:monospace; font-size:0.78rem; border:1px solid #86efac; border-radius:10px; padding:12px; background:#f9fffe; resize:vertical;"></textarea>
-            <div style="font-size:0.8rem; color:#166534; margin-top:6px;">💡 复制后在浏览器控制台（Console）粘贴执行，结果输出后粘贴到上方"导入有效期"面板</div>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+                <span style="font-size:0.8rem; color:#166534; flex:1;">💡 复制后在浏览器控制台（Console）粘贴执行，结果输出后粘贴到上方"导入有效期"面板</span>
+                <button class="btn btn-success" id="copyScriptBtn" style="padding:6px 18px; font-size:0.85rem; white-space:nowrap;">📋 复制脚本</button>
+                <button class="btn btn-primary" onclick="window.open('https://starship.corp.kuaishou.com/phoenix/portal/render2/live2/prod/amis/popularity-assistant-optimization','_blank')" style="padding:6px 18px; font-size:0.85rem; white-space:nowrap;">🔗 跳转人气助手</button>
+            </div>
         </div>
     </div>
 
