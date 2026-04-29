@@ -389,6 +389,7 @@
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
                 <span style="font-size:0.85rem; font-weight:600; color:#166534;">✅ 脚本已生成（共 <span id="scriptIdCount">0</span> 个主播ID）</span>
                 <button class="btn btn-success" id="copyScriptBtn" style="padding:6px 18px; font-size:0.85rem;">📋 复制脚本</button>
+                <button class="btn btn-primary" onclick="window.open('https://starship.corp.kuaishou.com/phoenix/portal/render2/live2/prod/amis/popularity-assistant-optimization','_blank')" style="padding:6px 18px; font-size:0.85rem;">🔗 跳转人气助手</button>
             </div>
             <textarea id="scriptOutputText" readonly style="width:100%; min-height:160px; font-family:monospace; font-size:0.78rem; border:1px solid #86efac; border-radius:10px; padding:12px; background:#f9fffe; resize:vertical;"></textarea>
             <div style="font-size:0.8rem; color:#166534; margin-top:6px;">💡 复制后在浏览器控制台（Console）粘贴执行，结果输出后粘贴到上方"导入有效期"面板</div>
@@ -764,24 +765,34 @@
     }
 
     // ===== 有效期批量导入解析 =====
+    // 从文本中提取日期字符串（识别 YYYY/MM/DD 或 YYYY-MM-DD 格式）
+    function extractDateStr(str) {
+        if (!str) return '';
+        const m = str.match(/(\d{4}[\/-]\d{1,2}[\/-]\d{1,2}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?)/);
+        return m ? m[1].trim() : '';
+    }
     function parseExpiryImportText(text) {
         const lines = text.trim().split('\n');
-        const result = {}; // { anchorId: expiryStr }
+        const result = {};
         for (const line of lines) {
             if (!line.trim()) continue;
-            // 支持 Tab、逗号、两个以上空格分隔
-            const parts = line.trim().split(/\t|,|  +/);
-            if (parts.length < 2) continue;
-            let id, expiry;
-            if (parts.length >= 3) {
-                // 三列格式：主播ID + 昵称 + 有效期
-                id = parts[0].trim();
-                expiry = parts[2].trim();
-            } else {
-                id = parts[0].trim();
-                expiry = parts[1].trim();
+            // 优先按 Tab 或逗号分割（三列格式：ID + 昵称 + 有效期）
+            const tabParts = line.trim().split(/\t|,/);
+            if (tabParts.length >= 3) {
+                const id = tabParts[0].trim();
+                // 第三列起拼接（防止有效期本身含逗号），再提取日期
+                const expiry = extractDateStr(tabParts.slice(2).join(' '));
+                if (id && /^\d+$/.test(id) && expiry) { result[id] = expiry; continue; }
             }
-            if (id && expiry) result[id] = expiry;
+            if (tabParts.length === 2) {
+                const id = tabParts[0].trim();
+                const expiry = extractDateStr(tabParts[1]);
+                if (id && /^\d+$/.test(id) && expiry) { result[id] = expiry; continue; }
+            }
+            // 兜底：从整行中找第一个 ID（纯数字串）+ 第一个日期
+            const idMatch = line.match(/^\s*(\d+)/);
+            const dateStr = extractDateStr(line);
+            if (idMatch && dateStr) result[idMatch[1]] = dateStr;
         }
         return result;
     }
