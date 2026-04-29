@@ -375,6 +375,7 @@
         </div>
         <textarea id="scriptIdInput" placeholder="粘贴主播ID，每行一个，例如：&#10;96353628&#10;53172667&#10;46964623&#10;..." style="border-color:#86efac; min-height:100px;"></textarea>
         <div class="panel-actions" style="margin-top:10px;">
+            <button class="btn btn-primary" id="loadIdsFromMemoryBtn">📥 导入当前记忆ID</button>
             <button class="btn btn-success" id="genScriptBtn">⚡ 生成查询脚本</button>
             <button class="btn btn-outline" id="clearScriptInputBtn">清空</button>
         </div>
@@ -970,6 +971,14 @@
         if (!isOpen) expiryPanel.style.display = 'none'; // 互斥
     });
 
+    document.getElementById('loadIdsFromMemoryBtn').addEventListener('click', () => {
+        if (rows.length <= 1) { alert('当前没有主播数据'); return; }
+        const ids = rows.slice(1).map(r => String(r[0]).trim()).filter(id => id && /^\d+$/.test(id));
+        if (ids.length === 0) { alert('未找到有效的主播ID'); return; }
+        document.getElementById('scriptIdInput').value = ids.join('\n');
+        document.getElementById('scriptOutput').style.display = 'none';
+        alert(`已导入 ${ids.length} 个主播ID，点击"生成查询脚本"继续`);
+    });
     document.getElementById('clearScriptInputBtn').addEventListener('click', () => {
         document.getElementById('scriptIdInput').value = '';
         document.getElementById('scriptOutput').style.display = 'none';
