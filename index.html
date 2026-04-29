@@ -374,6 +374,12 @@
             然后在快手后台（登录状态）按 <kbd>F12</kbd> → Console，粘贴执行，等待结果输出后导入到上方"有效期"面板。
         </div>
         <textarea id="scriptIdInput" placeholder="粘贴主播ID，每行一个，例如：&#10;96353628&#10;53172667&#10;46964623&#10;..." style="border-color:#86efac; min-height:100px;"></textarea>
+        <div style="display:flex; align-items:center; gap:10px; margin-top:10px; background:white; padding:10px 16px; border-radius:12px; border:1px solid #86efac;">
+            <span style="font-size:0.88rem; font-weight:600; color:#166534; white-space:nowrap;">👤 我的邮箱前缀</span>
+            <input type="text" id="usernameInput" placeholder="例如：makuo（邮箱@前的部分）" style="flex:1; padding:8px 14px; border:1px solid #86efac; border-radius:30px; font-size:0.9rem;">
+            <button class="btn btn-outline" id="saveUsernameBtn" style="white-space:nowrap; border-color:#86efac;">💾 保存</button>
+            <span style="font-size:0.8rem; color:#6b7280;">脚本将用此替换请求中的用户名，保存后自动生效</span>
+        </div>
         <div class="panel-actions" style="margin-top:10px;">
             <button class="btn btn-primary" id="loadIdsFromMemoryBtn">📥 导入当前记忆ID</button>
             <button class="btn btn-success" id="genScriptBtn">⚡ 生成查询脚本</button>
@@ -445,6 +451,7 @@
     const MANUAL_KEY = 'trafficConfigManual';
     const EXPIRY_KEY = 'trafficConfigExpiry';
     const FOLDER_KEY = 'downloadFolder';
+    const USERNAME_KEY = 'scriptUsername';
     const WARN_DAYS = 7;
 
     // ===== 辅助函数 =====
@@ -963,6 +970,19 @@
     });
 
     // ===== 脚本生成器 =====
+    // username 存储
+    const usernameInput = document.getElementById('usernameInput');
+    usernameInput.value = localStorage.getItem(USERNAME_KEY) || '';
+    document.getElementById('saveUsernameBtn').addEventListener('click', () => {
+        const v = usernameInput.value.trim();
+        if (!v) { alert('请输入邮箱前缀'); return; }
+        localStorage.setItem(USERNAME_KEY, v);
+        const btn = document.getElementById('saveUsernameBtn');
+        const orig = btn.textContent;
+        btn.textContent = '✅ 已保存';
+        setTimeout(() => btn.textContent = orig, 1500);
+    });
+
     document.getElementById('toggleScriptGenBtn').addEventListener('click', () => {
         const panel = document.getElementById('scriptGenPanel');
         const expiryPanel = document.getElementById('expiryPanel');
@@ -987,9 +1007,12 @@
     document.getElementById('genScriptBtn').addEventListener('click', () => {
         const raw = document.getElementById('scriptIdInput').value.trim();
         if (!raw) { alert('请先粘贴主播ID'); return; }
-        // 解析ID：支持换行、空格、逗号、Tab分隔
         const ids = raw.split(/[\n\r,，\t\s]+/).map(s => s.trim()).filter(s => /^\d+$/.test(s));
         if (ids.length === 0) { alert('未识别到有效的主播ID（纯数字）'); return; }
+
+        // 获取用户名，未填则提示
+        const username = document.getElementById('usernameInput').value.trim();
+        if (!username) { alert('请先填写你的邮箱前缀（如：makuo），否则脚本请求会失败'); return; }
 
         const idsJson = JSON.stringify(ids, null, 4);
         const script = `(async function batchQueryExpiry() {
@@ -999,11 +1022,9 @@
   const HEADERS = {
     "accept": "application/json, text/plain, */*",
     "accept-language": "zh,zh-CN;q=0.9",
-    "avatar": "https://static.yximgs.com/udata/pkg/KS-IS-AVATAR-PRODUCTION/S19327/0B51AA301D002534577DA53BC05E7F7B",
-    "displayname": "%E9%A9%AC%E9%98%94",
-    "username": "makuo",
+    "username": "${username}",
     "x-airstar-app-id": "63ec505ac379243dfb69f812",
-    "x-request-user": "makuo"
+    "x-request-user": "${username}"
   };
 
   function tsToDateStr(ts) {
