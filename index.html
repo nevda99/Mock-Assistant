@@ -345,6 +345,7 @@
         <button class="btn btn-outline" id="resetViewBtn">🔄 重置表格</button>
         <button class="btn btn-danger" id="deleteSelectedBtn">🗑️ 删除选中行</button>
         <button class="btn btn-warning" id="toggleExpiryPanelBtn">⏳ 导入有效期</button>
+        <button class="btn btn-success" id="toggleScriptGenBtn">🛠️ 生成查询脚本</button>
         <button class="btn btn-outline" id="clearMemoryBtn">🧹 清除记忆</button>
     </div>
 
@@ -362,6 +363,28 @@
             <button class="btn btn-warning" id="importExpiryBtn">📥 导入并更新有效期</button>
             <button class="btn btn-outline" id="clearExpiryBtn">🗑️ 清空所有有效期</button>
             <span style="font-size:0.82rem; color:#78350f;">⚠️ 导入后数据自动保存，可多次追加导入</span>
+        </div>
+    </div>
+
+    <!-- 脚本生成器面板 -->
+    <div class="expiry-panel" id="scriptGenPanel" style="display:none; background:#f0fdf4; border-color:#86efac;">
+        <h3 style="color:#166534;">🛠️ 批量查询脚本生成器</h3>
+        <div class="panel-hint" style="color:#166534;">
+            📋 <strong>使用方法：</strong>将主播ID粘贴到下方（每行一个，或空格/逗号分隔均可），点击"生成脚本"后复制代码。<br>
+            然后在快手后台（登录状态）按 <kbd>F12</kbd> → Console，粘贴执行，等待结果输出后导入到上方"有效期"面板。
+        </div>
+        <textarea id="scriptIdInput" placeholder="粘贴主播ID，每行一个，例如：&#10;96353628&#10;53172667&#10;46964623&#10;..." style="border-color:#86efac; min-height:100px;"></textarea>
+        <div class="panel-actions" style="margin-top:10px;">
+            <button class="btn btn-success" id="genScriptBtn">⚡ 生成查询脚本</button>
+            <button class="btn btn-outline" id="clearScriptInputBtn">清空</button>
+        </div>
+        <div id="scriptOutput" style="display:none; margin-top:14px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                <span style="font-size:0.85rem; font-weight:600; color:#166534;">✅ 脚本已生成（共 <span id="scriptIdCount">0</span> 个主播ID）</span>
+                <button class="btn btn-success" id="copyScriptBtn" style="padding:6px 18px; font-size:0.85rem;">📋 复制脚本</button>
+            </div>
+            <textarea id="scriptOutputText" readonly style="width:100%; min-height:160px; font-family:monospace; font-size:0.78rem; border:1px solid #86efac; border-radius:10px; padding:12px; background:#f9fffe; resize:vertical;"></textarea>
+            <div style="font-size:0.8rem; color:#166534; margin-top:6px;">💡 复制后在浏览器控制台（Console）粘贴执行，结果输出后粘贴到上方"导入有效期"面板</div>
         </div>
     </div>
 
@@ -936,6 +959,108 @@
         const folder = folderInput.value.trim();
         if (folder) { localStorage.setItem(FOLDER_KEY, folder); alert('已保存'); }
         else alert('请输入有效路径');
+    });
+
+    // ===== 脚本生成器 =====
+    document.getElementById('toggleScriptGenBtn').addEventListener('click', () => {
+        const panel = document.getElementById('scriptGenPanel');
+        const expiryPanel = document.getElementById('expiryPanel');
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) expiryPanel.style.display = 'none'; // 互斥
+    });
+
+    document.getElementById('clearScriptInputBtn').addEventListener('click', () => {
+        document.getElementById('scriptIdInput').value = '';
+        document.getElementById('scriptOutput').style.display = 'none';
+    });
+
+    document.getElementById('genScriptBtn').addEventListener('click', () => {
+        const raw = document.getElementById('scriptIdInput').value.trim();
+        if (!raw) { alert('请先粘贴主播ID'); return; }
+        // 解析ID：支持换行、空格、逗号、Tab分隔
+        const ids = raw.split(/[\n\r,，\t\s]+/).map(s => s.trim()).filter(s => /^\d+$/.test(s));
+        if (ids.length === 0) { alert('未识别到有效的主播ID（纯数字）'); return; }
+
+        const idsJson = JSON.stringify(ids, null, 4);
+        const script = `(async function batchQueryExpiry() {
+  const anchorIds = ${idsJson};
+
+  const DELAY_MS = 700;
+  const HEADERS = {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "zh,zh-CN;q=0.9",
+    "avatar": "https://static.yximgs.com/udata/pkg/KS-IS-AVATAR-PRODUCTION/S19327/0B51AA301D002534577DA53BC05E7F7B",
+    "displayname": "%E9%A9%AC%E9%98%94",
+    "username": "makuo",
+    "x-airstar-app-id": "63ec505ac379243dfb69f812",
+    "x-request-user": "makuo"
+  };
+
+  function tsToDateStr(ts) {
+    if (!ts) return '';
+    const d = new Date(Number(ts));
+    const p = n => String(n).padStart(2, '0');
+    return \`\${d.getFullYear()}/\${p(d.getMonth()+1)}/\${p(d.getDate())} \${p(d.getHours())}:\${p(d.getMinutes())}:\${p(d.getSeconds())}\`;
+  }
+
+  const results = [];
+  console.log(\`%c[批量查询] 开始查询 \${anchorIds.length} 个主播的有效期...\`, 'color:#1e3a8a;font-weight:bold;font-size:14px');
+
+  for (let i = 0; i < anchorIds.length; i++) {
+    const uid = anchorIds[i];
+    try {
+      const url = \`https://starship.corp.kuaishou.com/api/external/api/live/apollo/multiplePool/getAll?page=1&author_id=\${uid}&pageSize=10&userId=\${uid}&claimStatus=0\`;
+      const resp = await fetch(url, { method:'GET', headers:HEADERS, referrer:'https://airstar.corp.kuaishou.com/', mode:'cors', credentials:'include' });
+      if (!resp.ok) { results.push({主播ID:uid,昵称:'',有效期:\`失败(\${resp.status})\`}); continue; }
+      const json = await resp.json();
+      const items = json?.data?.auhtorList || json?.data?.list || [];
+      const matched = Array.isArray(items) ? (items.find(x => String(x?.authorInfo?.userId)===String(uid)) || items[0]) : null;
+      if (matched) {
+        const name = matched?.authorInfo?.userName || '';
+        const endTs = matched?.periodEndTime;
+        const expiry = endTs ? tsToDateStr(endTs) : '字段为空';
+        results.push({主播ID:uid,昵称:name,有效期:expiry});
+        const diff = endTs ? Math.ceil((Number(endTs)-Date.now())/86400000) : null;
+        const label = diff===null?'':diff<0?\` ⚠️已过期\${Math.abs(diff)}天\`:\` (剩\${diff}天)\`;
+        const color = diff!==null&&diff<0?'#b91c1c':diff!==null&&diff<=7?'#d97706':'#0b5e42';
+        console.log(\`%c[\${i+1}/\${anchorIds.length}] ✅ \${uid} \${name} → \${expiry}\${label}\`,\`color:\${color}\`);
+      } else {
+        results.push({主播ID:uid,昵称:'',有效期:'未查到记录'});
+        console.log(\`%c[\${i+1}/\${anchorIds.length}] ⚠️ \${uid} → 未查到记录\`,'color:#6b7280');
+      }
+    } catch(err) {
+      results.push({主播ID:uid,昵称:'',有效期:\`异常:\${err.message}\`});
+    }
+    if (i < anchorIds.length-1) await new Promise(r=>setTimeout(r,DELAY_MS));
+  }
+
+  console.log('\\n%c========== 查询完成 ==========','color:#1e3a8a;font-weight:bold;font-size:16px');
+  console.table(results.map(r=>({主播ID:r.主播ID,昵称:r.昵称,有效期:r.有效期})));
+  const txt = results.map(r=>\`\${r.主播ID}\\t\${r.昵称}\\t\${r.有效期}\`).join('\\n');
+  console.log('\\n%c========== 可复制结果（粘贴到配置工具"导入有效期"面板）==========','color:#0b5e42;font-weight:bold;font-size:14px');
+  console.log('主播ID\\t昵称\\t有效期');
+  console.log(txt);
+  window.__anchorExpiryResult = results;
+  return results;
+})();`;
+
+        document.getElementById('scriptIdCount').textContent = ids.length;
+        document.getElementById('scriptOutputText').value = script;
+        document.getElementById('scriptOutput').style.display = 'block';
+    });
+
+    document.getElementById('copyScriptBtn').addEventListener('click', () => {
+        const text = document.getElementById('scriptOutputText').value;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('copyScriptBtn');
+            const orig = btn.textContent;
+            btn.textContent = '✅ 已复制！';
+            setTimeout(() => btn.textContent = orig, 2000);
+        }).catch(() => {
+            document.getElementById('scriptOutputText').select();
+            document.execCommand('copy');
+        });
     });
 
     // ===== 初始化 =====
